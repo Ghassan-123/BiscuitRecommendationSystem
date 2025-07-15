@@ -107,15 +107,18 @@ class RecommendationEngine(KnowledgeEngine):
     def is_of_type(self, answer, Type, valid):
         # "Check that the answer has the right form"
         if Type == "input":
+            print(Type)
             ans = answer.strip().replace("%", "")
+            print("ans", ans)
+            print("num", self.is_a_number(ans))
             return self.is_a_number(ans)
         else:
             pass
 
     def is_a_number(self, answer):
         try:
-            int(answer)
-            if answer > 0:
+            answer = int(answer)
+            if answer >= 0:
                 return True
             else:
                 return False
@@ -197,7 +200,7 @@ class RecommendationEngine(KnowledgeEngine):
         AS.co << Answer(id=L("contaminated"), text=MATCH.ans7),
         TEST(
             lambda ans1, ans2, ans3, ans4, ans5, ans6, ans7: int(ans1)
-            < int(ans2 + ans3 + ans4 + ans5 + ans6 + ans7)
+            < int(ans2) + int(ans3) + int(ans4) + int(ans5) + int(ans6) + int(ans7)
         ),
         salience=50,
     )
