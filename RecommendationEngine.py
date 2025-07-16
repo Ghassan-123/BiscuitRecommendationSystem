@@ -326,65 +326,65 @@ class RecommendationEngine(KnowledgeEngine):
         self.retract(answer)
         self.declare(Fact(ask=id))
 
-    # @Rule(
-    #     AS.ans << Answer(id=L("cracked")),
-    #     Answer(id=L("deffected"), text=MATCH.num),
-    #     TEST(lambda ans: "cf" not in ans),
-    #     salience=20,
-    # )
-    # def add_cracked_cf(self, ans, num):
-    #     cf = round(ans["text"] / num, 1)
-    #     self.modify(ans, cf=cf)
+    @Rule(
+        AS.ans << Answer(id=L("cracked")),
+        Answer(id=L("deffected"), text=MATCH.num),
+        TEST(lambda ans: "cf" not in ans),
+        salience=20,
+    )
+    def add_cracked_cf(self, ans, num):
+        cf = round(ans["text"] / num, 1)
+        self.modify(ans, cf=cf)
 
-    # @Rule(
-    #     AS.ans << Answer(id=L("burned")),
-    #     Answer(id=L("deffected"), text=MATCH.num),
-    #     TEST(lambda ans: "cf" not in ans),
-    #     salience=20,
-    # )
-    # def add_burned_cf(self, ans, num):
-    #     cf = round(ans["text"] / num, 1)
-    #     self.modify(ans, cf=cf)
+    @Rule(
+        AS.ans << Answer(id=L("burned")),
+        Answer(id=L("deffected"), text=MATCH.num),
+        TEST(lambda ans: "cf" not in ans),
+        salience=20,
+    )
+    def add_burned_cf(self, ans, num):
+        cf = round(ans["text"] / num, 1)
+        self.modify(ans, cf=cf)
 
-    # @Rule(
-    #     AS.ans << Answer(id=L("under_cooked")),
-    #     Answer(id=L("deffected"), text=MATCH.num),
-    #     TEST(lambda ans: "cf" not in ans),
-    #     salience=20,
-    # )
-    # def add_under_cooked_cf(self, ans, num):
-    #     cf = round(ans["text"] / num, 1)
-    #     self.modify(ans, cf=cf)
+    @Rule(
+        AS.ans << Answer(id=L("under_cooked")),
+        Answer(id=L("deffected"), text=MATCH.num),
+        TEST(lambda ans: "cf" not in ans),
+        salience=20,
+    )
+    def add_under_cooked_cf(self, ans, num):
+        cf = round(ans["text"] / num, 1)
+        self.modify(ans, cf=cf)
 
-    # @Rule(
-    #     AS.ans << Answer(id=L("over_sized")),
-    #     Answer(id=L("deffected"), text=MATCH.num),
-    #     TEST(lambda ans: "cf" not in ans),
-    #     salience=20,
-    # )
-    # def add_over_sized_cf(self, ans, num):
-    #     cf = round(ans["text"] / num, 1)
-    #     self.modify(ans, cf=cf)
+    @Rule(
+        AS.ans << Answer(id=L("over_sized")),
+        Answer(id=L("deffected"), text=MATCH.num),
+        TEST(lambda ans: "cf" not in ans),
+        salience=20,
+    )
+    def add_over_sized_cf(self, ans, num):
+        cf = round(ans["text"] / num, 1)
+        self.modify(ans, cf=cf)
 
-    # @Rule(
-    #     AS.ans << Answer(id=L("under_sized")),
-    #     Answer(id=L("deffected"), text=MATCH.num),
-    #     TEST(lambda ans: "cf" not in ans),
-    #     salience=20,
-    # )
-    # def add_under_sized_cf(self, ans, num):
-    #     cf = round(ans["text"] / num, 1)
-    #     self.modify(ans, cf=cf)
+    @Rule(
+        AS.ans << Answer(id=L("under_sized")),
+        Answer(id=L("deffected"), text=MATCH.num),
+        TEST(lambda ans: "cf" not in ans),
+        salience=20,
+    )
+    def add_under_sized_cf(self, ans, num):
+        cf = round(ans["text"] / num, 1)
+        self.modify(ans, cf=cf)
 
-    # @Rule(
-    #     AS.ans << Answer(id=L("contaminated")),
-    #     Answer(id=L("deffected"), text=MATCH.num),
-    #     TEST(lambda ans: "cf" not in ans),
-    #     salience=20,
-    # )
-    # def add_contaminated_cf(self, ans, num):
-    #     cf = round(ans["text"] / num, 1)
-    #     self.modify(ans, cf=cf)
+    @Rule(
+        AS.ans << Answer(id=L("contaminated")),
+        Answer(id=L("deffected"), text=MATCH.num),
+        TEST(lambda ans: "cf" not in ans),
+        salience=20,
+    )
+    def add_contaminated_cf(self, ans, num):
+        cf = round(ans["text"] / num, 1)
+        self.modify(ans, cf=cf)
 
     # the rules for each deffect
     @Rule(
@@ -407,23 +407,21 @@ class RecommendationEngine(KnowledgeEngine):
     )
     def supply_answer_low_cracked_count(self):
         self.declare(Fact(ask="low_cracked_count"))
-        
+
     Rule(
         (Answer(id=L("cracked"), text=MATCH.ans1)),
         (AS.se << Answer(id=L("severly_cracked_count"), text=MATCH.ans2)),
-        (AS.mo <<Answer(id=L("moderate_cracked_count"), text=MATCH.ans3)),
-        (AS.lo <<Answer(id=L("low_cracked_count"), text=MATCH.ans4)),
-        TEST(lambda ans1, ans2, ans3, ans4:
-            ans1 != ans2 + ans3 + ans4
-        ),
+        (AS.mo << Answer(id=L("moderate_cracked_count"), text=MATCH.ans3)),
+        (AS.lo << Answer(id=L("low_cracked_count"), text=MATCH.ans4)),
+        TEST(lambda ans1, ans2, ans3, ans4: ans1 != ans2 + ans3 + ans4),
         salience=50,
     )
+
     def validate_cracked_num(self, se, mo, lo):
         self.retract(se)
         self.retract(mo)
         self.retract(lo)
         self.declare(Fact(ask="severly_cracked_count"))
-        
 
     @Rule(
         (Answer(id=L("low_cracked_count"))),
@@ -445,24 +443,21 @@ class RecommendationEngine(KnowledgeEngine):
     )
     def supply_answer_low_burned_count(self):
         self.declare(Fact(ask="low_burned_count"))
-        
-        
+
     Rule(
         (Answer(id=L("burned"), text=MATCH.ans1)),
         (AS.se << Answer(id=L("severly_burned_count"), text=MATCH.ans2)),
-        (AS.mo <<Answer(id=L("moderate_burned_count"), text=MATCH.ans3)),
-        (AS.lo <<Answer(id=L("low_burned_count"), text=MATCH.ans4)),
-        TEST(lambda ans1, ans2, ans3, ans4:
-            ans1 != ans2 + ans3 + ans4
-        ),
+        (AS.mo << Answer(id=L("moderate_burned_count"), text=MATCH.ans3)),
+        (AS.lo << Answer(id=L("low_burned_count"), text=MATCH.ans4)),
+        TEST(lambda ans1, ans2, ans3, ans4: ans1 != ans2 + ans3 + ans4),
         salience=50,
     )
+
     def validate_burned_num(self, se, mo, lo):
         self.retract(se)
         self.retract(mo)
         self.retract(lo)
         self.declare(Fact(ask="severly_burned_count"))
-        
 
     @Rule(
         (Answer(id=L("low_burned_count"))),
@@ -484,24 +479,21 @@ class RecommendationEngine(KnowledgeEngine):
     )
     def supply_answer_low_under_cooked_count(self):
         self.declare(Fact(ask="low_under_cooked_count"))
-        
-        
+
     Rule(
         (Answer(id=L("under_cooked"), text=MATCH.ans1)),
         (AS.se << Answer(id=L("severly_under_cooked_count"), text=MATCH.ans2)),
-        (AS.mo <<Answer(id=L("moderate_under_cooked_count"), text=MATCH.ans3)),
-        (AS.lo <<Answer(id=L("low_under_cooked_count"), text=MATCH.ans4)),
-        TEST(lambda ans1, ans2, ans3, ans4:
-            ans1 != ans2 + ans3 + ans4
-        ),
+        (AS.mo << Answer(id=L("moderate_under_cooked_count"), text=MATCH.ans3)),
+        (AS.lo << Answer(id=L("low_under_cooked_count"), text=MATCH.ans4)),
+        TEST(lambda ans1, ans2, ans3, ans4: ans1 != ans2 + ans3 + ans4),
         salience=50,
     )
+
     def validate_under_cooked_num(self, se, mo, lo):
         self.retract(se)
         self.retract(mo)
         self.retract(lo)
         self.declare(Fact(ask="severly_under_cooked_count"))
-        
 
     @Rule(
         (Answer(id=L("low_under_cooked_count"))),
@@ -516,17 +508,15 @@ class RecommendationEngine(KnowledgeEngine):
     )
     def supply_answer_moderate_over_sized_count(self):
         self.declare(Fact(ask="moderate_over_sized_count"))
-        
 
     Rule(
         (Answer(id=L("over_sized"), text=MATCH.ans1)),
         (AS.se << Answer(id=L("severly_over_sized_count"), text=MATCH.ans2)),
-        (AS.mo <<Answer(id=L("moderate_over_sized_count"), text=MATCH.ans3)),
-        TEST(lambda ans1, ans2, ans3:
-            ans1 != ans2 + ans3
-        ),
+        (AS.mo << Answer(id=L("moderate_over_sized_count"), text=MATCH.ans3)),
+        TEST(lambda ans1, ans2, ans3: ans1 != ans2 + ans3),
         salience=50,
     )
+
     def validate_over_sized_num(self, se, mo):
         self.retract(se)
         self.retract(mo)
@@ -545,58 +535,73 @@ class RecommendationEngine(KnowledgeEngine):
     )
     def supply_answer_moderate_under_sized_count(self):
         self.declare(Fact(ask="moderate_under_sized_count"))
-        
-        
+
     Rule(
         (Answer(id=L("under_sized"), text=MATCH.ans1)),
         (AS.se << Answer(id=L("severly_under_sized_count"), text=MATCH.ans2)),
-        (AS.mo <<Answer(id=L("moderate_under_sized_count"), text=MATCH.ans3)),
-        TEST(lambda ans1, ans2, ans3:
-            ans1 != ans2 + ans3
-        ),
+        (AS.mo << Answer(id=L("moderate_under_sized_count"), text=MATCH.ans3)),
+        TEST(lambda ans1, ans2, ans3: ans1 != ans2 + ans3),
         salience=50,
     )
+
     def validate_under_sized_num(self, se, mo):
         self.retract(se)
         self.retract(mo)
         self.declare(Fact(ask="severly_under_sized_count"))
-        
 
     # Declaring the rules that declares deffects
     @Rule(
-        (Answer(id=L("cracked"))),
-        (Answer(id=L("cracked_size"), text=MATCH.cr)),
+        (Answer(id=L("cracked"), text=MATCH.cr, cf=MATCH.cf)),
+        (Answer(id=L("severly_cracked_count"), text=MATCH.se)),
+        (Answer(id=L("moderate_cracked_count"), text=MATCH.mo)),
+        (Answer(id=L("low_cracked_count"), text=MATCH.lo)),
     )
-    def declare_cracked(self, cr):
-        self.declare(Cracked(size=cr))
+    def declare_cracked(self, cr, cf, se, mo, lo):
+        severity_factor = ((se * 0.8) + (mo * 0.5) + (lo * 0.1)) / cr
+        new_cf = cf * severity_factor
+        self.declare(Cracked(cf=new_cf))
 
     @Rule(
-        (Answer(id=L("burned"))),
-        (Answer(id=L("burned_percentage"), text=MATCH.br)),
+        (Answer(id=L("burned"), text=MATCH.cr, cf=MATCH.cf)),
+        (Answer(id=L("severly_burned_count"), text=MATCH.se)),
+        (Answer(id=L("moderate_burned_count"), text=MATCH.mo)),
+        (Answer(id=L("low_burned_count"), text=MATCH.lo)),
     )
-    def declare_burned(self, br):
-        self.declare(Burned(percentage=br))
+    def declare_burned(self, br, cf, se, mo, lo):
+        severity_factor = ((se * 0.8) + (mo * 0.5) + (lo * 0.1)) / br
+        new_cf = cf * severity_factor
+        self.declare(Burned(cf=new_cf))
 
     @Rule(
-        (Answer(id=L("under_cooked"))),
-        (AS.cr << Answer(id=L("under_cooked_percentage"), text=MATCH.uc)),
+        (Answer(id=L("under_cooked"), text=MATCH.uc, cf=MATCH.cf)),
+        (Answer(id=L("severly_under_cooked_count"), text=MATCH.se)),
+        (Answer(id=L("moderate_under_cooked_count"), text=MATCH.mo)),
+        (Answer(id=L("low_under_cooked_count"), text=MATCH.lo)),
     )
-    def declare_under_cooked(self, uc):
-        self.declare(UnderCooked(percentage=uc))
+    def declare_under_cooked(self, uc, cf, se, mo, lo):
+        severity_factor = ((se * 0.8) + (mo * 0.5) + (lo * 0.1)) / uc
+        new_cf = cf * severity_factor
+        self.declare(UnderCooked(cf=new_cf))
 
     @Rule(
-        (Answer(id=L("over_sized"))),
-        (AS.cr << Answer(id=L("over_sized_size"), text=MATCH.size)),
+        (Answer(id=L("over_sized"), text=MATCH.os, cf=MATCH.cf)),
+        (Answer(id=L("severly_over_sized_count"), text=MATCH.se)),
+        (Answer(id=L("moderate_over_sized_count"), text=MATCH.mo)),
     )
-    def declare_over_sized(self, size):
-        self.declare(OverSized(size=size))
+    def declare_over_sized(self, os, cf, se, mo):
+        severity_factor = ((se * 0.8) + (mo * 0.5)) / os
+        new_cf = cf * severity_factor
+        self.declare(OverSized(cf=new_cf))
 
     @Rule(
-        (Answer(id=L("under_sized"))),
-        (AS.cr << Answer(id=L("over_sized_size"), text=MATCH.size)),
+        (Answer(id=L("under_sized"), text=MATCH.us, cf=MATCH.cf)),
+        (Answer(id=L("severly_under_sized_count"), text=MATCH.se)),
+        (Answer(id=L("moderate_under_sized_count"), text=MATCH.mo)),
     )
-    def declare_under_sized(self, size):
-        self.declare(UnderSized(size=size))
+    def declare_under_sized(self, us, cf, se, mo):
+        severity_factor = ((se * 0.8) + (mo * 0.5)) / us
+        new_cf = cf * severity_factor
+        self.declare(UnderSized(cf=new_cf))
 
     @Rule((Answer(id=L("contaminated"))), salience=20)
     def declare_under_sized(self):
