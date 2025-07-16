@@ -407,6 +407,23 @@ class RecommendationEngine(KnowledgeEngine):
     )
     def supply_answer_low_cracked_count(self):
         self.declare(Fact(ask="low_cracked_count"))
+        
+    Rule(
+        (Answer(id=L("cracked"), text=MATCH.ans1)),
+        (AS.se << Answer(id=L("severly_cracked_count"), text=MATCH.ans2)),
+        (AS.mo <<Answer(id=L("moderate_cracked_count"), text=MATCH.ans3)),
+        (AS.lo <<Answer(id=L("low_cracked_count"), text=MATCH.ans4)),
+        TEST(lambda ans1, ans2, ans3, ans4:
+            ans1 != ans2 + ans3 + ans4
+        ),
+        salience=50,
+    )
+    def validate_cracked_num(self, se, mo, lo):
+        self.retract(se)
+        self.retract(mo)
+        self.retract(lo)
+        self.declare(Fact(ask="severly_cracked_count"))
+        
 
     @Rule(
         (Answer(id=L("low_cracked_count"))),
@@ -428,6 +445,24 @@ class RecommendationEngine(KnowledgeEngine):
     )
     def supply_answer_low_burned_count(self):
         self.declare(Fact(ask="low_burned_count"))
+        
+        
+    Rule(
+        (Answer(id=L("burned"), text=MATCH.ans1)),
+        (AS.se << Answer(id=L("severly_burned_count"), text=MATCH.ans2)),
+        (AS.mo <<Answer(id=L("moderate_burned_count"), text=MATCH.ans3)),
+        (AS.lo <<Answer(id=L("low_burned_count"), text=MATCH.ans4)),
+        TEST(lambda ans1, ans2, ans3, ans4:
+            ans1 != ans2 + ans3 + ans4
+        ),
+        salience=50,
+    )
+    def validate_burned_num(self, se, mo, lo):
+        self.retract(se)
+        self.retract(mo)
+        self.retract(lo)
+        self.declare(Fact(ask="severly_burned_count"))
+        
 
     @Rule(
         (Answer(id=L("low_burned_count"))),
@@ -449,6 +484,24 @@ class RecommendationEngine(KnowledgeEngine):
     )
     def supply_answer_low_under_cooked_count(self):
         self.declare(Fact(ask="low_under_cooked_count"))
+        
+        
+    Rule(
+        (Answer(id=L("under_cooked"), text=MATCH.ans1)),
+        (AS.se << Answer(id=L("severly_under_cooked_count"), text=MATCH.ans2)),
+        (AS.mo <<Answer(id=L("moderate_under_cooked_count"), text=MATCH.ans3)),
+        (AS.lo <<Answer(id=L("low_under_cooked_count"), text=MATCH.ans4)),
+        TEST(lambda ans1, ans2, ans3, ans4:
+            ans1 != ans2 + ans3 + ans4
+        ),
+        salience=50,
+    )
+    def validate_under_cooked_num(self, se, mo, lo):
+        self.retract(se)
+        self.retract(mo)
+        self.retract(lo)
+        self.declare(Fact(ask="severly_under_cooked_count"))
+        
 
     @Rule(
         (Answer(id=L("low_under_cooked_count"))),
@@ -463,6 +516,21 @@ class RecommendationEngine(KnowledgeEngine):
     )
     def supply_answer_moderate_over_sized_count(self):
         self.declare(Fact(ask="moderate_over_sized_count"))
+        
+
+    Rule(
+        (Answer(id=L("over_sized"), text=MATCH.ans1)),
+        (AS.se << Answer(id=L("severly_over_sized_count"), text=MATCH.ans2)),
+        (AS.mo <<Answer(id=L("moderate_over_sized_count"), text=MATCH.ans3)),
+        TEST(lambda ans1, ans2, ans3:
+            ans1 != ans2 + ans3
+        ),
+        salience=50,
+    )
+    def validate_over_sized_num(self, se, mo):
+        self.retract(se)
+        self.retract(mo)
+        self.declare(Fact(ask="severly_over_sized_count"))
 
     @Rule(
         (Answer(id=L("moderate_over_sized_count"))),
@@ -477,6 +545,22 @@ class RecommendationEngine(KnowledgeEngine):
     )
     def supply_answer_moderate_under_sized_count(self):
         self.declare(Fact(ask="moderate_under_sized_count"))
+        
+        
+    Rule(
+        (Answer(id=L("under_sized"), text=MATCH.ans1)),
+        (AS.se << Answer(id=L("severly_under_sized_count"), text=MATCH.ans2)),
+        (AS.mo <<Answer(id=L("moderate_under_sized_count"), text=MATCH.ans3)),
+        TEST(lambda ans1, ans2, ans3:
+            ans1 != ans2 + ans3
+        ),
+        salience=50,
+    )
+    def validate_under_sized_num(self, se, mo):
+        self.retract(se)
+        self.retract(mo)
+        self.declare(Fact(ask="severly_under_sized_count"))
+        
 
     # Declaring the rules that declares deffects
     @Rule(
