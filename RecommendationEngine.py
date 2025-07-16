@@ -72,28 +72,82 @@ class RecommendationEngine(KnowledgeEngine):
             text="you mistyped one of the deffects number please choose what you put wrong to modify\n1-cracked\n2-burned\n3-under_cooked\n4-over_sized\n5-under_sized\n6-contaminated",
         )
         yield Question(
-            id="cracked_size",
-            Type="input_float",
+            id="severly_cracked_count",
+            Type="input_int",
             valid=[],
-            text="what is the average crack rate(example: 50%, 30%, etc...)?",
+            text="How many severly cracked biscuits (>50%)?",
         )
         yield Question(
-            id="burned_percentage",
-            Type="input_float",
+            id="moderate_cracked_count",
+            Type="input_int",
             valid=[],
-            text="what is the average burn rate(example: 50%, 30%, etc...)?",
+            text="How many moderate cracked biscuits (20%~50%)?",
         )
         yield Question(
-            id="under_cooked_percentage",
-            Type="input_float",
+            id="low_cracked_count",
+            Type="input_int",
             valid=[],
-            text="what is the average under_cooked rate(example: 50%, 30%, etc...)?",
+            text="How many low cracked biscuits (<20%)?",
         )
         yield Question(
-            id="over_sized_size",
-            Type="input_float",
+            id="severly_burned_count",
+            Type="input_int",
             valid=[],
-            text="what is the average size(radius) of the biscuits(example: 4cm, 10cm, etc...)?",
+            text="How many severly burned biscuits (>40%)?",
+        )
+        yield Question(
+            id="moderate_burned_count",
+            Type="input_int",
+            valid=[],
+            text="How many moderate burned biscuits(10%~40%)?",
+        )
+        yield Question(
+            id="low_burned_count",
+            Type="input_int",
+            valid=[],
+            text="How many low burned biscuits(<10%)?",
+        )
+        yield Question(
+            id="severly_under_cooked_count",
+            Type="input_int",
+            valid=[],
+            text="How many severly under_cooked biscuits (>40%)?",
+        )
+        yield Question(
+            id="moderate_under_cooked_count",
+            Type="input_int",
+            valid=[],
+            text="How many moderate under_cooked biscuits(10%~40%)?",
+        )
+        yield Question(
+            id="low_under_cooked_count",
+            Type="input_int",
+            valid=[],
+            text="How many low under_cooked biscuits(<10%)?",
+        )
+        yield Question(
+            id="severly_over_sized_count",
+            Type="input_int",
+            valid=[],
+            text="How many biscuits have raduis greater than 4cm",
+        )
+        yield Question(
+            id="moderate_over_sized_count",
+            Type="input_int",
+            valid=[],
+            text="How many biscuits have raduis between 3.5cm and 4cm?",
+        )
+        yield Question(
+            id="moderate_under_sized_count",
+            Type="input_int",
+            valid=[],
+            text="How many biscuits have raduis between 2.5cm and 3cm?",
+        )
+        yield Question(
+            id="severly_under_sized_count",
+            Type="input_int",
+            valid=[],
+            text="How many biscuits have raduis lower than 2.5cm?",
         )
 
     @Rule(
@@ -272,95 +326,157 @@ class RecommendationEngine(KnowledgeEngine):
         self.retract(answer)
         self.declare(Fact(ask=id))
 
-    @Rule(
-        AS.ans << Answer(id=L("cracked")),
-        Answer(id=L("deffected"), text=MATCH.num),
-        TEST(lambda ans: "cf" not in ans),
-        salience=20,
-    )
-    def add_cracked_cf(self, ans, num):
-        cf = round(ans["text"] / num, 1)
-        self.modify(ans, cf=cf)
+    # @Rule(
+    #     AS.ans << Answer(id=L("cracked")),
+    #     Answer(id=L("deffected"), text=MATCH.num),
+    #     TEST(lambda ans: "cf" not in ans),
+    #     salience=20,
+    # )
+    # def add_cracked_cf(self, ans, num):
+    #     cf = round(ans["text"] / num, 1)
+    #     self.modify(ans, cf=cf)
 
-    @Rule(
-        AS.ans << Answer(id=L("burned")),
-        Answer(id=L("deffected"), text=MATCH.num),
-        TEST(lambda ans: "cf" not in ans),
-        salience=20,
-    )
-    def add_burned_cf(self, ans, num):
-        cf = round(ans["text"] / num, 1)
-        self.modify(ans, cf=cf)
+    # @Rule(
+    #     AS.ans << Answer(id=L("burned")),
+    #     Answer(id=L("deffected"), text=MATCH.num),
+    #     TEST(lambda ans: "cf" not in ans),
+    #     salience=20,
+    # )
+    # def add_burned_cf(self, ans, num):
+    #     cf = round(ans["text"] / num, 1)
+    #     self.modify(ans, cf=cf)
 
-    @Rule(
-        AS.ans << Answer(id=L("under_cooked")),
-        Answer(id=L("deffected"), text=MATCH.num),
-        TEST(lambda ans: "cf" not in ans),
-        salience=20,
-    )
-    def add_under_cooked_cf(self, ans, num):
-        cf = round(ans["text"] / num, 1)
-        self.modify(ans, cf=cf)
+    # @Rule(
+    #     AS.ans << Answer(id=L("under_cooked")),
+    #     Answer(id=L("deffected"), text=MATCH.num),
+    #     TEST(lambda ans: "cf" not in ans),
+    #     salience=20,
+    # )
+    # def add_under_cooked_cf(self, ans, num):
+    #     cf = round(ans["text"] / num, 1)
+    #     self.modify(ans, cf=cf)
 
-    @Rule(
-        AS.ans << Answer(id=L("over_sized")),
-        Answer(id=L("deffected"), text=MATCH.num),
-        TEST(lambda ans: "cf" not in ans),
-        salience=20,
-    )
-    def add_over_sized_cf(self, ans, num):
-        cf = round(ans["text"] / num, 1)
-        self.modify(ans, cf=cf)
+    # @Rule(
+    #     AS.ans << Answer(id=L("over_sized")),
+    #     Answer(id=L("deffected"), text=MATCH.num),
+    #     TEST(lambda ans: "cf" not in ans),
+    #     salience=20,
+    # )
+    # def add_over_sized_cf(self, ans, num):
+    #     cf = round(ans["text"] / num, 1)
+    #     self.modify(ans, cf=cf)
 
-    @Rule(
-        AS.ans << Answer(id=L("under_sized")),
-        Answer(id=L("deffected"), text=MATCH.num),
-        TEST(lambda ans: "cf" not in ans),
-        salience=20,
-    )
-    def add_under_sized_cf(self, ans, num):
-        cf = round(ans["text"] / num, 1)
-        self.modify(ans, cf=cf)
+    # @Rule(
+    #     AS.ans << Answer(id=L("under_sized")),
+    #     Answer(id=L("deffected"), text=MATCH.num),
+    #     TEST(lambda ans: "cf" not in ans),
+    #     salience=20,
+    # )
+    # def add_under_sized_cf(self, ans, num):
+    #     cf = round(ans["text"] / num, 1)
+    #     self.modify(ans, cf=cf)
 
-    @Rule(
-        AS.ans << Answer(id=L("contaminated")),
-        Answer(id=L("deffected"), text=MATCH.num),
-        TEST(lambda ans: "cf" not in ans),
-        salience=20,
-    )
-    def add_contaminated_cf(self, ans, num):
-        cf = round(ans["text"] / num, 1)
-        self.modify(ans, cf=cf)
+    # @Rule(
+    #     AS.ans << Answer(id=L("contaminated")),
+    #     Answer(id=L("deffected"), text=MATCH.num),
+    #     TEST(lambda ans: "cf" not in ans),
+    #     salience=20,
+    # )
+    # def add_contaminated_cf(self, ans, num):
+    #     cf = round(ans["text"] / num, 1)
+    #     self.modify(ans, cf=cf)
 
-    # the rules for percent
+    # the rules for each deffect
     @Rule(
         (Answer(id=L("contaminated"))),
-        NOT(Answer(id=L("cracked_size"))),
+        NOT(Answer(id=L("severly_cracked_count"))),
     )
-    def supply_answer_cracked_size(self):
-        print("supply_answer_cracked_size")
-        self.declare(Fact(ask="cracked_size"))
+    def supply_answer_severe_cracked_count(self):
+        self.declare(Fact(ask="severly_cracked_count"))
 
     @Rule(
-        (Answer(id=L("cracked_size"))),
-        NOT(Answer(id=L("burned_percentage"))),
+        (Answer(id=L("severly_cracked_count"))),
+        NOT(Answer(id=L("moderate_cracked_count"))),
     )
-    def supply_answer_burned_percentage(self):
-        self.declare(Fact(ask="burned_percentage"))
+    def supply_answer_moderate_cracked_count(self):
+        self.declare(Fact(ask="moderate_cracked_count"))
 
     @Rule(
-        (Answer(id=L("burned_percentage"))),
-        NOT(Answer(id=L("under_cooked_percentage"))),
+        (Answer(id=L("moderate_cracked_count"))),
+        NOT(Answer(id=L("low_cracked_count"))),
     )
-    def supply_answer_under_cooked_percentage(self):
-        self.declare(Fact(ask="under_cooked_percentage"))
+    def supply_answer_low_cracked_count(self):
+        self.declare(Fact(ask="low_cracked_count"))
 
     @Rule(
-        (Answer(id=L("under_cooked_percentage"))),
-        NOT(Answer(id=L("over_sized_size"))),
+        (Answer(id=L("low_cracked_count"))),
+        NOT(Answer(id=L("severly_burned_count"))),
     )
-    def supply_answer_size_percentage(self):
-        self.declare(Fact(ask="over_sized_size"))
+    def supply_answer_severe_burned_count(self):
+        self.declare(Fact(ask="severly_burned_count"))
+
+    @Rule(
+        (Answer(id=L("severly_burned_count"))),
+        NOT(Answer(id=L("moderate_burned_count"))),
+    )
+    def supply_answer_moderate_burned_count(self):
+        self.declare(Fact(ask="moderate_burned_count"))
+
+    @Rule(
+        (Answer(id=L("moderate_burned_count"))),
+        NOT(Answer(id=L("low_burned_count"))),
+    )
+    def supply_answer_low_burned_count(self):
+        self.declare(Fact(ask="low_burned_count"))
+
+    @Rule(
+        (Answer(id=L("low_burned_count"))),
+        NOT(Answer(id=L("severly_under_cooked_count"))),
+    )
+    def supply_answer_severe_under_cooked_count(self):
+        self.declare(Fact(ask="severly_under_cooked_count"))
+
+    @Rule(
+        (Answer(id=L("severly_under_cooked_count"))),
+        NOT(Answer(id=L("moderate_under_cooked_count"))),
+    )
+    def supply_answer_moderate_under_cooked_count(self):
+        self.declare(Fact(ask="moderate_under_cooked_count"))
+
+    @Rule(
+        (Answer(id=L("moderate_under_cooked_count"))),
+        NOT(Answer(id=L("low_under_cooked_count"))),
+    )
+    def supply_answer_low_under_cooked_count(self):
+        self.declare(Fact(ask="low_under_cooked_count"))
+
+    @Rule(
+        (Answer(id=L("low_under_cooked_count"))),
+        NOT(Answer(id=L("severly_over_sized_count"))),
+    )
+    def supply_answer_severly_over_sized_count(self):
+        self.declare(Fact(ask="severly_over_sized_count"))
+
+    @Rule(
+        (Answer(id=L("severly_over_sized_count"))),
+        NOT(Answer(id=L("moderate_over_sized_count"))),
+    )
+    def supply_answer_moderate_over_sized_count(self):
+        self.declare(Fact(ask="moderate_over_sized_count"))
+
+    @Rule(
+        (Answer(id=L("moderate_over_sized_count"))),
+        NOT(Answer(id=L("severly_under_sized_count"))),
+    )
+    def supply_answer_severly_under_sized_count(self):
+        self.declare(Fact(ask="severly_under_sized_count"))
+
+    @Rule(
+        (Answer(id=L("severly_under_sized_count"))),
+        NOT(Answer(id=L("moderate_under_sized_count"))),
+    )
+    def supply_answer_moderate_under_sized_count(self):
+        self.declare(Fact(ask="moderate_under_sized_count"))
 
     # Declaring the rules that declares deffects
     @Rule(
@@ -468,29 +584,54 @@ class RecommendationEngine(KnowledgeEngine):
     def acceptable_undercooked(self, cf):
         self.declare(
             Prediction(
-                text="Malfunctional thermocouple or wrong settings - (<10% undercooked)"
+                text="Malfunctional thermocouple or wrong settings - (<10% undercooked)",
+                cf=cf,
             )
         )
 
     # Size-related rules
-    @Rule(OverSized(size=P(lambda x: x > 15)))
-    def critical_oversized(self):
+    @Rule(Answer(id=L("overe_sized"), cf=MATCH.cf), OverSized(size=P(lambda x: x > 15)))
+    def critical_oversized(self, cf):
         self.declare(
-            Fact(recommendation="Major oversizing (>15) - recalibrate equipment")
+            Prediction(
+                text="Mold cutter deformed critical - (>15)",
+                cf=cf,
+            )
         )
 
-    @Rule(OverSized(size=P(lambda x: 12 <= x <= 15)))
-    def moderate_oversized(self):
-        self.declare(Fact(recommendation="Check sizing equipment (12-15 oversized)"))
-
-    @Rule(UnderSized(size=P(lambda x: 10 <= x <= 12)))
-    def moderate_undersized(self):
-        self.declare(Fact(recommendation="Check sizing equipment (10-12 undersized)"))
-
-    @Rule(UnderSized(size=P(lambda x: x < 10)))
-    def critical_undersized(self):
+    @Rule(
+        Answer(id=L("overe_sized"), cf=MATCH.cf),
+        OverSized(size=P(lambda x: 12 <= x <= 15)),
+    )
+    def moderate_oversized(self, cf):
         self.declare(
-            Fact(recommendation="Major undersizing (<10) - recalibrate equipment")
+            Prediction(
+                text="Mold cutter deformed slightly - (12~15)",
+                cf=cf,
+            )
+        )
+
+    @Rule(
+        Answer(id=L("under_sized"), cf=MATCH.cf),
+        UnderSized(size=P(lambda x: 10 <= x <= 12)),
+    )
+    def moderate_undersized(self, cf):
+        self.declare(
+            Prediction(
+                text="Mold cutter deformed slightly - (10~12)",
+                cf=cf,
+            )
+        )
+
+    @Rule(
+        Answer(id=L("under_sized"), cf=MATCH.cf), UnderSized(size=P(lambda x: x < 10))
+    )
+    def critical_undersized(self, cf):
+        self.declare(
+            Prediction(
+                text="Mold cutter deformed slightly - (<10)",
+                cf=cf,
+            )
         )
 
     # Contamination rule
