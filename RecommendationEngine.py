@@ -156,7 +156,6 @@ class RecommendationEngine(KnowledgeEngine):
             return None
 
     # Input validation rules
-
     @Rule(NOT(Answer(id=L("total"))), NOT(Fact(ask=L("total"))))
     def supply_answer_total(self):
         self.declare(Fact(ask="total"))
@@ -273,6 +272,66 @@ class RecommendationEngine(KnowledgeEngine):
         self.retract(answer)
         self.declare(Fact(ask=id))
 
+    @Rule(
+        AS.ans << Answer(id=L("cracked")),
+        Answer(id=L("deffected"), text=MATCH.num),
+        TEST(lambda ans: "cf" not in ans),
+        salience=20,
+    )
+    def add_cracked_cf(self, ans, num):
+        cf = round(ans["text"] / num, 1)
+        self.modify(ans, cf=cf)
+
+    @Rule(
+        AS.ans << Answer(id=L("burned")),
+        Answer(id=L("deffected"), text=MATCH.num),
+        TEST(lambda ans: "cf" not in ans),
+        salience=20,
+    )
+    def add_burned_cf(self, ans, num):
+        cf = round(ans["text"] / num, 1)
+        self.modify(ans, cf=cf)
+
+    @Rule(
+        AS.ans << Answer(id=L("under_cooked")),
+        Answer(id=L("deffected"), text=MATCH.num),
+        TEST(lambda ans: "cf" not in ans),
+        salience=20,
+    )
+    def add_under_cooked_cf(self, ans, num):
+        cf = round(ans["text"] / num, 1)
+        self.modify(ans, cf=cf)
+
+    @Rule(
+        AS.ans << Answer(id=L("over_sized")),
+        Answer(id=L("deffected"), text=MATCH.num),
+        TEST(lambda ans: "cf" not in ans),
+        salience=20,
+    )
+    def add_over_sized_cf(self, ans, num):
+        cf = round(ans["text"] / num, 1)
+        self.modify(ans, cf=cf)
+
+    @Rule(
+        AS.ans << Answer(id=L("under_sized")),
+        Answer(id=L("deffected"), text=MATCH.num),
+        TEST(lambda ans: "cf" not in ans),
+        salience=20,
+    )
+    def add_under_sized_cf(self, ans, num):
+        cf = round(ans["text"] / num, 1)
+        self.modify(ans, cf=cf)
+
+    @Rule(
+        AS.ans << Answer(id=L("contaminated")),
+        Answer(id=L("deffected"), text=MATCH.num),
+        TEST(lambda ans: "cf" not in ans),
+        salience=20,
+    )
+    def add_contaminated_cf(self, ans, num):
+        cf = round(ans["text"] / num, 1)
+        self.modify(ans, cf=cf)
+
     # the rules for percent
     @Rule(
         (Answer(id=L("contaminated"))),
@@ -304,7 +363,6 @@ class RecommendationEngine(KnowledgeEngine):
         self.declare(Fact(ask="over_sized_size"))
 
     # Declaring the rules that declares deffects
-
     @Rule(
         (Answer(id=L("cracked"))),
         (Answer(id=L("cracked_size"), text=MATCH.cr)),
@@ -344,45 +402,74 @@ class RecommendationEngine(KnowledgeEngine):
     def declare_under_sized(self):
         self.declare(Contaminated())
 
+    @Rule(
+        (Answer(id=L("total"), text=MATCH.tnum)),
+        (Answer(id=L("deffected"), text=MATCH.dnum)),
+        TEST(lambda tnum, dnum: dnum > tnum // 3),
+    )
+    def critical_deffected(self):
+        print("critical_deffected")
+        pass
+
     # Cracked rules
-    @Rule(Cracked(size=P(lambda x: x >= 20)))
-    def critical_cracked(self):
+    @Rule(Answer(id=L("cracked"), cf=MATCH.cf), Cracked(size=P(lambda x: x >= 20)))
+    def critical_cracked(self, cf):
         self.declare(
-            Fact(recommendation="Reject entire batch - critical cracking (≥20%)")
+            Prediction(
+                text="Conveyor or dough - critical cracking (≥20% cracked)", cf=cf
+            )
         )
 
-    @Rule(Cracked(size=P(lambda x: 5 <= x < 20)))
-    def moderate_cracked(self):
-        self.declare(
-            Fact(recommendation="Sort and remove cracked items (5-20% cracked)")
-        )
+    @Rule(Answer(id=L("cracked"), cf=MATCH.cf), Cracked(size=P(lambda x: 5 <= x < 20)))
+    def moderate_cracked(self, cf):
+        self.declare(Prediction(text="Conveyor speed - (5~20% cracked)", cf=cf))
 
-    @Rule(Cracked(size=P(lambda x: x < 5)))
-    def minor_cracked(self):
-        self.declare(Fact(recommendation="Monitor cracking (≤5%) - normal wear"))
+    @Rule(Answer(id=L("cracked"), cf=MATCH.cf), Cracked(size=P(lambda x: x < 5)))
+    def minor_cracked(self, cf):
+        self.declare(Prediction(text="Normal wear - (<5% cracked)", cf=cf))
 
     # Burned rules
-    @Rule(Burned(percentage=P(lambda x: x >= 15)))
-    def critical_burned(self):
+    @Rule(Answer(id=L("burned"), cf=MATCH.cf), Burned(percentage=P(lambda x: x >= 15)))
+    def critical_burned(self, cf):
         self.declare(
-            Fact(recommendation="Adjust heating process and reject batch (≥15% burned)")
+            Prediction(
+                text="Malfunctional Oven - critical burning (≥15% burned)", cf=cf
+            )
         )
 
-    @Rule(Burned(percentage=P(lambda x: 3 <= x < 15)))
-    def moderate_burned(self):
-        self.declare(Fact(recommendation="Inspect heating equipment (3-15% burned)"))
+    @Rule(
+        Answer(id=L("burned"), cf=MATCH.cf), Burned(percentage=P(lambda x: 3 <= x < 15))
+    )
+    def moderate_burned(self, cf):
+        self.declare(
+            Prediction(
+                text="Malfunctional thermocouple or wrong settings - (3~15% burned)",
+                cf=cf,
+            )
+        )
 
     # UnderCooked rules
-    @Rule(UnderCooked(percentage=P(lambda x: x >= 10)))
-    def critical_undercooked(self):
+    @Rule(
+        Answer(id=L("under_cooked"), cf=MATCH.cf),
+        UnderCooked(percentage=P(lambda x: x >= 10)),
+    )
+    def critical_undercooked(self, cf):
         self.declare(
-            Fact(recommendation="Increase cooking time/temperature (≥10% undercooked)")
+            Prediction(
+                text="Malfunctional Oven - critical undercook - (≥10% undercooked)",
+                cf=cf,
+            )
         )
 
-    @Rule(UnderCooked(percentage=P(lambda x: x < 10)))
-    def acceptable_undercooked(self):
+    @Rule(
+        Answer(id=L("under_cooked"), cf=MATCH.cf),
+        UnderCooked(percentage=P(lambda x: x < 10)),
+    )
+    def acceptable_undercooked(self, cf):
         self.declare(
-            Fact(recommendation="Minor undercooking (≤10%) - within tolerance")
+            Prediction(
+                text="Malfunctional thermocouple or wrong settings - (<10% undercooked)"
+            )
         )
 
     # Size-related rules

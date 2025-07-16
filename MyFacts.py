@@ -31,3 +31,12 @@ class UnderSized(Fact):
 
 class Contaminated(Fact):
     pass
+
+
+class Prediction(Fact):
+    text = Field(str, mandatory=True)
+    cf = Field(float, default=100.0)
+
+
+class Recommendation(Fact):
+    text = Field(str, mandatory=True)
