@@ -45,12 +45,107 @@ class Main:
         engine = RecommendationEngine()
         engine.reset()
         engine.run()
+        # Collect predictions and recommendations
+        predictions = []
+        recommendations = set()  # Use set to avoid duplicates
+
         for fact in engine.facts.values():
-            if fact.get(
-                "recommendation"
-            ):  # This checks for both existence and non-empty/None
-                print(dict(fact))  # Print all key-value pairs
-        print(engine.facts.values())
+            if isinstance(fact, Prediction):
+                predictions.append(fact)
+            elif fact.get("recommendation"):
+                recommendations.add(fact["recommendation"])
+
+        # Sort predictions by CF descending for prioritization
+        predictions.sort(key=lambda p: p["cf"], reverse=True)
+
+        # Format and print the output
+        print("### Biscuit Production Line Recommendations\n")
+
+        total = next(
+            (
+                f["text"]
+                for f in engine.facts.values()
+                if isinstance(f, Answer) and f["id"] == "total"
+            ),
+            0,
+        )
+        defected = next(
+            (
+                f["text"]
+                for f in engine.facts.values()
+                if isinstance(f, Answer) and f["id"] == "deffected"
+            ),
+            0,
+        )
+        overall_rate = (int(defected) / int(total) * 100) if int(total) > 0 else 0
+
+        print(
+            f"Based on the provided batch data (total: {total} biscuits, defective: {defected}), the system identified the following issues and corresponding actions. Recommendations are prioritized by severity (e.g., contamination is critical). Only triggered defects are listed.\n"
+        )
+
+        if predictions:
+            for idx, pred in enumerate(predictions, 1):
+                text_parts = pred["text"].split(" - ")
+                if len(text_parts) >= 2:
+                    defect_type = text_parts[0]
+                    remaining = " - ".join(text_parts[1:])
+                    level_parts = remaining.split(" (")
+                    if len(level_parts) >= 2:
+                        level = level_parts[0]
+                        percentage_str = "(" + " (".join(level_parts[1:]).rstrip(")")
+                    else:
+                        level = remaining
+                        percentage_str = ""
+                else:
+                    defect_type = pred["text"]
+                    level = ""
+                    percentage_str = ""
+
+                cf = pred["cf"]
+
+                header = f"#### {idx}. **{defect_type.strip()}"
+                if level:
+                    header += f" ({level.capitalize()}"
+                    if percentage_str:
+                        header += f" - {percentage_str}"
+                    header += ")**"
+                else:
+                    header += "**"
+
+                print(header)
+                print(
+                    f"   - **Certainty Factor (CF)**: {cf:.3f} (adjusted for severity and proportion)"
+                )
+                print("   - **Actions**:")
+                # Find matching recommendation
+                matching_rec = next(
+                    (
+                        rec
+                        for rec in recommendations
+                        if any(
+                            key in rec.lower() for key in defect_type.lower().split()
+                        )
+                    ),
+                    "No specific actions defined.",
+                )
+                for line in matching_rec.split("\n"):
+                    print(f"     {line}")
+                print()
+
+                # Remove used recommendation to avoid duplication
+                recommendations.discard(matching_rec)
+
+        # Any remaining recommendations (e.g., overall)
+        if recommendations:
+            print("#### Additional Recommendations")
+            for rec in recommendations:
+                for line in rec.split("\n"):
+                    print(f"   {line}")
+
+        print("### Summary")
+        print(
+            f"- **Overall Defect Rate**: {overall_rate:.1f}% ({'critical' if overall_rate > 33 else 'moderate' if overall_rate > 10 else 'low'})."
+        )
 
 
 if __name__ == "__main__":

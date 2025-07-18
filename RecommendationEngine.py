@@ -1,4 +1,5 @@
 # RecommendationEngine.py
+from collections.abc import Mapping
 from experta import *
 from MyFacts import *
 
@@ -216,6 +217,16 @@ class RecommendationEngine(KnowledgeEngine):
         self.declare(Fact(ask="total"))
 
     @Rule(
+        AS.ans << Answer(id=L("total"), text=MATCH.tot),
+        TEST(lambda tot: int(tot) == 0),
+        NOT(Answer(id=L("deffected"))),
+        salience=55,
+    )
+    def invalid_total(self, ans):
+        self.retract(ans)
+        self.declare(Fact(ask="total"))
+
+    @Rule(
         (Answer(id=L("total"))),
         NOT(Answer(id=L("deffected"))),
     )
@@ -334,7 +345,10 @@ class RecommendationEngine(KnowledgeEngine):
         salience=20,
     )
     def add_cracked_cf(self, ans, num):
-        cf = round(int(ans["text"]) / int(num), 1)
+        if int(num) == 0:
+            cf = 0.0
+        else:
+            cf = round(int(ans["text"]) / int(num), 1)
         self.modify(ans, cf=cf)
 
     @Rule(
@@ -344,7 +358,10 @@ class RecommendationEngine(KnowledgeEngine):
         salience=20,
     )
     def add_burned_cf(self, ans, num):
-        cf = round(int(ans["text"]) / int(num), 1)
+        if int(num) == 0:
+            cf = 0.0
+        else:
+            cf = round(int(ans["text"]) / int(num), 1)
         self.modify(ans, cf=cf)
 
     @Rule(
@@ -354,7 +371,10 @@ class RecommendationEngine(KnowledgeEngine):
         salience=20,
     )
     def add_under_cooked_cf(self, ans, num):
-        cf = round(int(ans["text"]) / int(num), 1)
+        if int(num) == 0:
+            cf = 0.0
+        else:
+            cf = round(int(ans["text"]) / int(num), 1)
         self.modify(ans, cf=cf)
 
     @Rule(
@@ -364,7 +384,10 @@ class RecommendationEngine(KnowledgeEngine):
         salience=20,
     )
     def add_over_sized_cf(self, ans, num):
-        cf = round(int(ans["text"]) / int(num), 1)
+        if int(num) == 0:
+            cf = 0.0
+        else:
+            cf = round(int(ans["text"]) / int(num), 1)
         self.modify(ans, cf=cf)
 
     @Rule(
@@ -374,7 +397,10 @@ class RecommendationEngine(KnowledgeEngine):
         salience=20,
     )
     def add_under_sized_cf(self, ans, num):
-        cf = round(int(ans["text"]) / int(num), 1)
+        if int(num) == 0:
+            cf = 0.0
+        else:
+            cf = round(int(ans["text"]) / int(num), 1)
         self.modify(ans, cf=cf)
 
     @Rule(
@@ -384,7 +410,10 @@ class RecommendationEngine(KnowledgeEngine):
         salience=20,
     )
     def add_contaminated_cf(self, ans, num):
-        cf = round(int(ans["text"]) / int(num), 1)
+        if int(num) == 0:
+            cf = 0.0
+        else:
+            cf = round(int(ans["text"]) / int(num), 1)
         self.modify(ans, cf=cf)
 
     # the rules for each deffect
@@ -414,7 +443,10 @@ class RecommendationEngine(KnowledgeEngine):
         (AS.se << Answer(id=L("severely_cracked_count"), text=MATCH.ans2)),
         (AS.mo << Answer(id=L("moderate_cracked_count"), text=MATCH.ans3)),
         (AS.lo << Answer(id=L("low_cracked_count"), text=MATCH.ans4)),
-        TEST(lambda ans1, ans2, ans3, ans4: int(ans1) != int(ans2) + int(ans3) + int(ans4)),
+        TEST(
+            lambda ans1, ans2, ans3, ans4: int(ans1)
+            != int(ans2) + int(ans3) + int(ans4)
+        ),
         salience=50,
     )
     def validate_cracked_num(self, se, mo, lo):
@@ -449,7 +481,10 @@ class RecommendationEngine(KnowledgeEngine):
         (AS.se << Answer(id=L("severely_burned_count"), text=MATCH.ans2)),
         (AS.mo << Answer(id=L("moderate_burned_count"), text=MATCH.ans3)),
         (AS.lo << Answer(id=L("low_burned_count"), text=MATCH.ans4)),
-        TEST(lambda ans1, ans2, ans3, ans4: int(ans1) != int(ans2) + int(ans3) + int(ans4)),
+        TEST(
+            lambda ans1, ans2, ans3, ans4: int(ans1)
+            != int(ans2) + int(ans3) + int(ans4)
+        ),
         salience=50,
     )
     def validate_burned_num(self, se, mo, lo):
@@ -484,7 +519,10 @@ class RecommendationEngine(KnowledgeEngine):
         (AS.se << Answer(id=L("severely_under_cooked_count"), text=MATCH.ans2)),
         (AS.mo << Answer(id=L("moderate_under_cooked_count"), text=MATCH.ans3)),
         (AS.lo << Answer(id=L("low_under_cooked_count"), text=MATCH.ans4)),
-        TEST(lambda ans1, ans2, ans3, ans4: int(ans1) != int(ans2) + int(ans3) + int(ans4)),
+        TEST(
+            lambda ans1, ans2, ans3, ans4: int(ans1)
+            != int(ans2) + int(ans3) + int(ans4)
+        ),
         salience=50,
     )
     def validate_under_cooked_num(self, se, mo, lo):
@@ -552,6 +590,7 @@ class RecommendationEngine(KnowledgeEngine):
         Answer(id=L("severely_cracked_count"), text=MATCH.se),
         Answer(id=L("moderate_cracked_count"), text=MATCH.mo),
         Answer(id=L("low_cracked_count"), text=MATCH.lo),
+        TEST(lambda cr: int(cr) > 0),
     )
     def declare_cracked(self, cr, tot, cf, se, mo, lo):
         percentage = (int(cr) / int(tot)) * 100
@@ -565,6 +604,7 @@ class RecommendationEngine(KnowledgeEngine):
         Answer(id=L("severely_burned_count"), text=MATCH.se),
         Answer(id=L("moderate_burned_count"), text=MATCH.mo),
         Answer(id=L("low_burned_count"), text=MATCH.lo),
+        TEST(lambda br: int(br) > 0),
     )
     def declare_burned(self, br, tot, cf, se, mo, lo):
         percentage = (int(br) / int(tot)) * 100
@@ -578,6 +618,7 @@ class RecommendationEngine(KnowledgeEngine):
         Answer(id=L("severely_under_cooked_count"), text=MATCH.se),
         Answer(id=L("moderate_under_cooked_count"), text=MATCH.mo),
         Answer(id=L("low_under_cooked_count"), text=MATCH.lo),
+        TEST(lambda uc: int(uc) > 0),
     )
     def declare_under_cooked(self, uc, tot, cf, se, mo, lo):
         percentage = (int(uc) / int(tot)) * 100
@@ -590,6 +631,7 @@ class RecommendationEngine(KnowledgeEngine):
         Answer(id=L("total"), text=MATCH.tot),
         Answer(id=L("severely_over_sized_count"), text=MATCH.se),
         Answer(id=L("moderate_over_sized_count"), text=MATCH.mo),
+        TEST(lambda os: int(os) > 0),
     )
     def declare_over_sized(self, os, tot, cf, se, mo):
         percentage = (int(os) / int(tot)) * 100
@@ -602,6 +644,7 @@ class RecommendationEngine(KnowledgeEngine):
         Answer(id=L("total"), text=MATCH.tot),
         Answer(id=L("severely_under_sized_count"), text=MATCH.se),
         Answer(id=L("moderate_under_sized_count"), text=MATCH.mo),
+        TEST(lambda us: int(us) > 0),
     )
     def declare_under_sized(self, us, tot, cf, se, mo):
         percentage = (int(us) / int(tot)) * 100
@@ -613,7 +656,7 @@ class RecommendationEngine(KnowledgeEngine):
         Answer(id=L("contaminated"), text=MATCH.con, cf=MATCH.cf),
         Answer(id=L("total"), text=MATCH.tot),
         TEST(lambda con: int(con) > 0),
-        salience=20
+        salience=20,
     )
     def declare_contaminated(self, con, tot, cf):
         percentage = (int(con) / int(tot)) * 100
@@ -626,13 +669,16 @@ class RecommendationEngine(KnowledgeEngine):
         TEST(lambda tnum, dnum: int(dnum) > int(tnum) // 3),
     )
     def critical_deffected(self, tnum, dnum):
-        cf = round(int(dnum) / int(tnum), 1)
+        if int(tnum) == 0:
+            cf = 0.0
+        else:
+            cf = round(int(dnum) / int(tnum), 1)
+        self.declare(Prediction(text="Critical overall defects (>33% defected)", cf=cf))
         self.declare(
-            Prediction(
-                text="Critical overall defects (>33% defected)", cf=cf
+            Fact(
+                recommendation="- Furnace: Inspect for general malfunctions if burn/undercook dominate.\n- Dough: Inspect formula and mixing if cracking/contamination dominate.\n- The line: Full audit and maintenance if cracking/size issues dominate.\n- Iron appendages: Inspect for contamination sources if applicable.\n- Mold cutter: Inspect for deformation if size issues dominate."
             )
         )
-        self.declare(Fact(recommendation="- Furnace: Inspect for general malfunctions if burn/undercook dominate.\n- Dough: Inspect formula and mixing if cracking/contamination dominate.\n- The line: Full audit and maintenance if cracking/size issues dominate.\n- Iron appendages: Inspect for contamination sources if applicable.\n- Mold cutter: Inspect for deformation if size issues dominate."))
 
     # Cracked rules
     @Rule(Cracked(percentage=P(lambda x: x >= 20), cf=MATCH.cf))
@@ -642,17 +688,29 @@ class RecommendationEngine(KnowledgeEngine):
                 text="Conveyor or dough - critical cracking (≥20% cracked)", cf=cf
             )
         )
-        self.declare(Fact(recommendation="- Furnace: No action.\n- Dough: Inspect for improper mixing or low moisture; adjust formula to improve elasticity and reduce cracking.\n- The line: Inspect conveyor belt for damage, misalignment, or excessive vibration; repair or replace sections.\n- Iron appendages: No action.\n- Mold cutter: No action."))
+        self.declare(
+            Fact(
+                recommendation="- Furnace: No action.\n- Dough: Inspect for improper mixing or low moisture; adjust formula to improve elasticity and reduce cracking.\n- The line: Inspect conveyor belt for damage, misalignment, or excessive vibration; repair or replace sections.\n- Iron appendages: No action.\n- Mold cutter: No action."
+            )
+        )
 
     @Rule(Cracked(percentage=P(lambda x: 5 <= x < 20), cf=MATCH.cf))
     def moderate_cracked(self, cf):
         self.declare(Prediction(text="Conveyor speed - (5~20% cracked)", cf=cf))
-        self.declare(Fact(recommendation="- Furnace: No action.\n- Dough: No action.\n- The line: Adjust conveyor speed to ensure even baking and reduce stress on biscuits; calibrate motors.\n- Iron appendages: No action.\n- Mold cutter: No action."))
+        self.declare(
+            Fact(
+                recommendation="- Furnace: No action.\n- Dough: No action.\n- The line: Adjust conveyor speed to ensure even baking and reduce stress on biscuits; calibrate motors.\n- Iron appendages: No action.\n- Mold cutter: No action."
+            )
+        )
 
     @Rule(Cracked(percentage=P(lambda x: x < 5), cf=MATCH.cf))
     def minor_cracked(self, cf):
         self.declare(Prediction(text="Normal wear - (<5% cracked)", cf=cf))
-        self.declare(Fact(recommendation="- Furnace: No action.\n- Dough: No action.\n- The line: Monitor for ongoing wear; no immediate action needed.\n- Iron appendages: No action.\n- Mold cutter: No action."))
+        self.declare(
+            Fact(
+                recommendation="- Furnace: No action.\n- Dough: No action.\n- The line: Monitor for ongoing wear; no immediate action needed.\n- Iron appendages: No action.\n- Mold cutter: No action."
+            )
+        )
 
     # Burned rules
     @Rule(Burned(percentage=P(lambda x: x >= 15), cf=MATCH.cf))
@@ -662,7 +720,11 @@ class RecommendationEngine(KnowledgeEngine):
                 text="Malfunctional Oven - critical burning (≥15% burned)", cf=cf
             )
         )
-        self.declare(Fact(recommendation="- Furnace: Inspect for heating element failure or uneven heat distribution; repair or replace oven.\n- Dough: No action.\n- The line: No action.\n- Iron appendages: No action.\n- Mold cutter: No action."))
+        self.declare(
+            Fact(
+                recommendation="- Furnace: Inspect for heating element failure or uneven heat distribution; repair or replace oven.\n- Dough: No action.\n- The line: No action.\n- Iron appendages: No action.\n- Mold cutter: No action."
+            )
+        )
 
     @Rule(Burned(percentage=P(lambda x: 3 <= x < 15), cf=MATCH.cf))
     def moderate_burned(self, cf):
@@ -672,7 +734,11 @@ class RecommendationEngine(KnowledgeEngine):
                 cf=cf,
             )
         )
-        self.declare(Fact(recommendation="- Furnace: Check and calibrate thermocouple; adjust temperature settings for even baking.\n- Dough: No action.\n- The line: No action.\n- Iron appendages: No action.\n- Mold cutter: No action."))
+        self.declare(
+            Fact(
+                recommendation="- Furnace: Check and calibrate thermocouple; adjust temperature settings for even baking.\n- Dough: No action.\n- The line: No action.\n- Iron appendages: No action.\n- Mold cutter: No action."
+            )
+        )
 
     # UnderCooked rules
     @Rule(UnderCooked(percentage=P(lambda x: x >= 10), cf=MATCH.cf))
@@ -683,7 +749,11 @@ class RecommendationEngine(KnowledgeEngine):
                 cf=cf,
             )
         )
-        self.declare(Fact(recommendation="- Furnace: Inspect for heating failure or low temperature output; repair or replace oven.\n- Dough: No action.\n- The line: No action.\n- Iron appendages: No action.\n- Mold cutter: No action."))
+        self.declare(
+            Fact(
+                recommendation="- Furnace: Inspect for heating failure or low temperature output; repair or replace oven.\n- Dough: No action.\n- The line: No action.\n- Iron appendages: No action.\n- Mold cutter: No action."
+            )
+        )
 
     @Rule(UnderCooked(percentage=P(lambda x: x < 10), cf=MATCH.cf))
     def acceptable_undercooked(self, cf):
@@ -693,7 +763,11 @@ class RecommendationEngine(KnowledgeEngine):
                 cf=cf,
             )
         )
-        self.declare(Fact(recommendation="- Furnace: Check and calibrate thermocouple; increase temperature settings slightly.\n- Dough: No action.\n- The line: No action.\n- Iron appendages: No action.\n- Mold cutter: No action."))
+        self.declare(
+            Fact(
+                recommendation="- Furnace: Check and calibrate thermocouple; increase temperature settings slightly.\n- Dough: No action.\n- The line: No action.\n- Iron appendages: No action.\n- Mold cutter: No action."
+            )
+        )
 
     # Size-related rules
     @Rule(OverSized(percentage=P(lambda x: x > 15), cf=MATCH.cf))
@@ -704,7 +778,11 @@ class RecommendationEngine(KnowledgeEngine):
                 cf=cf,
             )
         )
-        self.declare(Fact(recommendation="- Furnace: No action.\n- Dough: No action.\n- The line: No action.\n- Iron appendages: No action.\n- Mold cutter: Inspect for major deformation; replace cutter immediately."))
+        self.declare(
+            Fact(
+                recommendation="- Furnace: No action.\n- Dough: No action.\n- The line: No action.\n- Iron appendages: No action.\n- Mold cutter: Inspect for major deformation; replace cutter immediately."
+            )
+        )
 
     @Rule(OverSized(percentage=P(lambda x: 12 <= x <= 15), cf=MATCH.cf))
     def moderate_oversized(self, cf):
@@ -714,7 +792,11 @@ class RecommendationEngine(KnowledgeEngine):
                 cf=cf,
             )
         )
-        self.declare(Fact(recommendation="- Furnace: No action.\n- Dough: No action.\n- The line: No action.\n- Iron appendages: No action.\n- Mold cutter: Inspect for minor wear; repair or realign cutter."))
+        self.declare(
+            Fact(
+                recommendation="- Furnace: No action.\n- Dough: No action.\n- The line: No action.\n- Iron appendages: No action.\n- Mold cutter: Inspect for minor wear; repair or realign cutter."
+            )
+        )
 
     @Rule(UnderSized(percentage=P(lambda x: x >= 15), cf=MATCH.cf))
     def critical_undersized(self, cf):
@@ -724,7 +806,11 @@ class RecommendationEngine(KnowledgeEngine):
                 cf=cf,
             )
         )
-        self.declare(Fact(recommendation="- Furnace: No action.\n- Dough: No action.\n- The line: No action.\n- Iron appendages: No action.\n- Mold cutter: Inspect for major deformation; replace cutter immediately."))
+        self.declare(
+            Fact(
+                recommendation="- Furnace: No action.\n- Dough: No action.\n- The line: No action.\n- Iron appendages: No action.\n- Mold cutter: Inspect for major deformation; replace cutter immediately."
+            )
+        )
 
     @Rule(UnderSized(percentage=P(lambda x: 10 <= x < 15), cf=MATCH.cf))
     def moderate_undersized(self, cf):
@@ -734,13 +820,21 @@ class RecommendationEngine(KnowledgeEngine):
                 cf=cf,
             )
         )
-        self.declare(Fact(recommendation="- Furnace: No action.\n- Dough: No action.\n- The line: No action.\n- Iron appendages: No action.\n- Mold cutter: Inspect for minor wear; repair or realign cutter."))
+        self.declare(
+            Fact(
+                recommendation="- Furnace: No action.\n- Dough: No action.\n- The line: No action.\n- Iron appendages: No action.\n- Mold cutter: Inspect for minor wear; repair or realign cutter."
+            )
+        )
 
     # Contamination rule
     @Rule(Contaminated(cf=MATCH.cf), salience=1000)
     def force_reject(self, cf):
         self.declare(Prediction(text="CRITICAL: Foreign object found in dough", cf=cf))
-        self.declare(Fact(recommendation="- Furnace: No action.\n- Dough: Halt production; discard affected batch and screen ingredients for contaminants.\n- The line: Full inspection and cleaning of entire production line to remove loose parts.\n- Iron appendages: If the line has iron appendages, inspect for rust, loose bolts, or metal fragments; remove or secure them to prevent further contamination.\n- Mold cutter: No action."))
+        self.declare(
+            Fact(
+                recommendation="- Furnace: No action.\n- Dough: Halt production; discard affected batch and screen ingredients for contaminants.\n- The line: Full inspection and cleaning of entire production line to remove loose parts.\n- Iron appendages: If the line has iron appendages, inspect for rust, loose bolts, or metal fragments; remove or secure them to prevent further contamination.\n- Mold cutter: No action."
+            )
+        )
 
     # Collect recommendations
     @Rule(Fact(recommendation=MATCH.r), salience=-1000)
