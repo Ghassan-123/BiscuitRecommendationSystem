@@ -315,7 +315,7 @@ class App(tk.Tk):
         self.engine.run()
 
         predictions = []
-        recommendations = set()  # Use set to avoid duplicates
+        recommendations = set()
         final_recommendation = ""
 
         for fact in self.engine.facts.values():
@@ -324,10 +324,8 @@ class App(tk.Tk):
             elif fact.get("recommendation"):
                 recommendations.add(fact["recommendation"])
 
-        # Sort predictions by CF descending for prioritization
         predictions.sort(key=lambda p: p["cf"], reverse=True)
 
-        # Format and print the output
         final_recommendation += "### Biscuit Production Line Recommendations\n\n"
 
         total = next(
@@ -348,7 +346,12 @@ class App(tk.Tk):
         )
         overall_rate = (int(defected) / int(total) * 100) if int(total) > 0 else 0
 
-        final_recommendation += f"Based on the provided batch data (total: {total} biscuits, defective: {defected}), the system identified the following issues and corresponding actions. Recommendations are prioritized by severity (e.g., contamination is critical). Only triggered defects are listed.\n\n"
+        final_recommendation += (
+            f"Based on the provided batch data (total: {total} biscuits, "
+            f"defective: {defected}), the system identified the following issues:\n\n"
+        )
+
+        used_recommendations = set()
 
         if predictions:
             for idx, pred in enumerate(predictions, 1):
@@ -369,7 +372,6 @@ class App(tk.Tk):
                     percentage_str = ""
 
                 cf = pred["cf"]
-
                 header = f"#### {idx}. **{defect_type.strip()}"
                 if level:
                     header += f" ({level.capitalize()}"
@@ -380,49 +382,46 @@ class App(tk.Tk):
                     header += "**"
 
                 final_recommendation += header + "\n"
-                final_recommendation += f"   - **Certainty Factor (CF)**: {cf:.3f} (adjusted for severity and proportion)\n"
+                final_recommendation += (
+                    f"   - **Certainty Factor (CF)**: {cf:.3f}\n"
+                    f"   - **Actions**:\n"
+                )
 
-                final_recommendation += "   - **Actions**:\n"
-                # Find matching recommendation
                 matching_rec = next(
                     (
                         rec
                         for rec in recommendations
-                        if any(
-                            key in rec.lower() for key in defect_type.lower().split()
-                        )
+                        if any(key in rec.lower() for key in defect_type.lower().split())
+                        and rec not in used_recommendations
                     ),
                     "No specific actions defined.",
                 )
                 for line in matching_rec.split("\n"):
                     final_recommendation += f"     {line}\n"
+
+                used_recommendations.add(matching_rec)
                 final_recommendation += "\n"
 
-                # Remove used recommendation to avoid duplication
-                recommendations.discard(matching_rec)
-
-        # Any remaining recommendations (e.g., overall)
-        if recommendations:
+        remaining_recs = recommendations - used_recommendations
+        if remaining_recs:
             final_recommendation += "#### Additional Recommendations\n"
-            for rec in recommendations:
+            for rec in remaining_recs:
                 for line in rec.split("\n"):
                     final_recommendation += f"   {line}\n"
 
-        final_recommendation += "### Summary\n"
-        final_recommendation += f"- **Overall Defect Rate**: {overall_rate:.1f}% ({'critical' if overall_rate > 33 else 'moderate' if overall_rate > 10 else 'low'}).\n"
+        final_recommendation += (
+            "\n### Summary\n"
+            f"- **Overall Defect Rate**: {overall_rate:.1f}% "
+            f"({'critical' if overall_rate > 33 else 'moderate' if overall_rate > 10 else 'low'}).\n"
+        )
 
-        if not recommendations:
-            self.recommendation_text.config(state="normal")
-            self.recommendation_text.delete(1.0, tk.END)
-            self.recommendation_text.insert(tk.END, "No recommendations.")
-            self.recommendation_text.config(state="disabled")
-        else:
-            self.recommendation_text.config(state="normal")
-            self.recommendation_text.delete(1.0, tk.END)
-            self.recommendation_text.insert(tk.END, f"{final_recommendation}\n\n")
-            self.recommendation_text.config(state="disabled")
+        # ✅ Enable, Update, Disable the Text Widget Properly
+        self.recommendation_text.config(state="normal")
+        self.recommendation_text.delete(1.0, tk.END)
+        self.recommendation_text.insert(tk.END, f"{final_recommendation}\n\n")
+        self.recommendation_text.config(state="disabled")
+    
 
-        # self.submit_button.pack_forget()
 
     def update_graph(self):
         self.fig.clear()
