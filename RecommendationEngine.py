@@ -218,7 +218,7 @@ class RecommendationEngine(KnowledgeEngine):
 
     @Rule(
         AS.ans << Answer(id=L("total"), text=MATCH.tot),
-        TEST(lambda tot: int(tot) == 0),
+        TEST(lambda tot: int(tot) <= 0),
         NOT(Answer(id=L("deffected"))),
         salience=55,
     )
@@ -324,7 +324,6 @@ class RecommendationEngine(KnowledgeEngine):
         salience=50,
     )
     def validation3(self):
-        print("validation3")
         self.declare(Fact(ask="wrong_input"))
 
     @Rule(
@@ -333,7 +332,6 @@ class RecommendationEngine(KnowledgeEngine):
         salience=100,
     )
     def ReAsk_about_defect_to_modify(self, wrong, answer, id):
-        print("ReAsk_about_defect_to_modify")
         self.retract(wrong)
         self.retract(answer)
         self.declare(Fact(ask=id))
@@ -755,11 +753,11 @@ class RecommendationEngine(KnowledgeEngine):
             )
         )
 
-    @Rule(UnderCooked(percentage=P(lambda x: x < 10), cf=MATCH.cf))
+    @Rule(UnderCooked(percentage=P(lambda x: 2 < x < 10), cf=MATCH.cf))
     def acceptable_undercooked(self, cf):
         self.declare(
             Prediction(
-                text="Malfunctional thermocouple or wrong settings - (<10% undercooked)",
+                text="Malfunctional thermocouple or wrong settings - (2~10% undercooked)",
                 cf=cf,
             )
         )
@@ -784,11 +782,11 @@ class RecommendationEngine(KnowledgeEngine):
             )
         )
 
-    @Rule(OverSized(percentage=P(lambda x: 12 <= x <= 15), cf=MATCH.cf))
+    @Rule(OverSized(percentage=P(lambda x: 5 <= x <= 15), cf=MATCH.cf))
     def moderate_oversized(self, cf):
         self.declare(
             Prediction(
-                text="Mold cutter deformed slightly - (12~15% oversized)",
+                text="Mold cutter deformed slightly - (5~15% oversized)",
                 cf=cf,
             )
         )
@@ -812,11 +810,11 @@ class RecommendationEngine(KnowledgeEngine):
             )
         )
 
-    @Rule(UnderSized(percentage=P(lambda x: 10 <= x < 15), cf=MATCH.cf))
+    @Rule(UnderSized(percentage=P(lambda x: 5 <= x < 15), cf=MATCH.cf))
     def moderate_undersized(self, cf):
         self.declare(
             Prediction(
-                text="Mold cutter deformed slightly - (10~15% undersized)",
+                text="Mold cutter deformed slightly - (5~15% undersized)",
                 cf=cf,
             )
         )
