@@ -768,7 +768,7 @@ class RecommendationEngine(KnowledgeEngine):
         )
 
     # Size-related rules
-    @Rule(OverSized(percentage=P(lambda x: x > 15), cf=MATCH.cf))
+    @Rule(OverSized(percentage=P(lambda x: x >= 15), cf=MATCH.cf))
     def critical_oversized(self, cf):
         self.declare(
             Prediction(
@@ -782,7 +782,7 @@ class RecommendationEngine(KnowledgeEngine):
             )
         )
 
-    @Rule(OverSized(percentage=P(lambda x: 5 <= x <= 15), cf=MATCH.cf))
+    @Rule(OverSized(percentage=P(lambda x: 5 <= x < 15), cf=MATCH.cf))
     def moderate_oversized(self, cf):
         self.declare(
             Prediction(
