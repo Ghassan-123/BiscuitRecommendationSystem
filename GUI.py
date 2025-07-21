@@ -6,6 +6,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 
+
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -21,26 +22,26 @@ class App(tk.Tk):
                 "text": "how many biscuits are deffected?",
                 "type": "int",
             },
-            {"id": "cracked", "text": "how many biscuits are cracked?", "type": "int"},
-            {"id": "burned", "text": "how many biscuits are burned?", "type": "int"},
+            {"id": "cracked", "text": "How many biscuits are cracked?", "type": "int"},
+            {"id": "burned", "text": "How many biscuits are burned?", "type": "int"},
             {
                 "id": "under_cooked",
-                "text": "how many biscuits are under_cooked?",
+                "text": "How many biscuits are under_cooked?",
                 "type": "int",
             },
             {
                 "id": "over_sized",
-                "text": "how many biscuits are over_sized?",
+                "text": "How many biscuits are over_sized?",
                 "type": "int",
             },
             {
                 "id": "under_sized",
-                "text": "how many biscuits are under_sized?",
+                "text": "How many biscuits are under_sized?",
                 "type": "int",
             },
             {
                 "id": "contaminated",
-                "text": "how many biscuits are contaminated?",
+                "text": "How many biscuits are contaminated?",
                 "type": "int",
             },
             {
@@ -185,12 +186,12 @@ class App(tk.Tk):
         self.fig = Figure(figsize=(6, 5), dpi=100, facecolor="#2E2E2E")
         self.ax = self.fig.add_subplot(111)
         self.ax.set_facecolor("#3C3C3C")
-        self.ax.tick_params(axis='x', colors='white')
-        self.ax.tick_params(axis='y', colors='white')
-        self.ax.spines['bottom'].set_color('white')
-        self.ax.spines['top'].set_color('white')
-        self.ax.spines['right'].set_color('white')
-        self.ax.spines['left'].set_color('white')
+        self.ax.tick_params(axis="x", colors="white")
+        self.ax.tick_params(axis="y", colors="white")
+        self.ax.spines["bottom"].set_color("white")
+        self.ax.spines["top"].set_color("white")
+        self.ax.spines["right"].set_color("white")
+        self.ax.spines["left"].set_color("white")
 
         self.canvas = FigureCanvasTkAgg(self.fig, master=right_frame)
         self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
@@ -233,14 +234,53 @@ class App(tk.Tk):
             canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
         # Bind only when mouse is over the canvas
-        canvas.bind("<Enter>", lambda e: canvas.bind_all("<MouseWheel>", _on_mousewheel))
+        canvas.bind(
+            "<Enter>", lambda e: canvas.bind_all("<MouseWheel>", _on_mousewheel)
+        )
         canvas.bind("<Leave>", lambda e: canvas.unbind_all("<MouseWheel>"))
 
         self.update_graph()
 
+    def validate_answer(self, answer, answer_type):
+        if answer_type == "int":
+            return answer.isdigit()
+        return True
+
+    # Add this method to your App class
+    def validate_answers_with_engine(self):
+        """Run the engine's validation rules on collected answers"""
+        # Create a temporary engine for validation
+        temp_engine = RecommendationEngine()
+        temp_engine.reset()
+
+        # Declare all answers as facts
+        for fact_id, fact_value in self.answers.items():
+            temp_engine.declare(Answer(id=fact_id, text=fact_value))
+
+        # Run only the validation rules (high salience rules)
+        temp_engine.run(100)  # Limit to 100 rule firings
+
+        # Check if the engine is asking for any corrections
+        validation_errors = []
+        for fact in temp_engine.facts.values():
+            if isinstance(fact, Fact) and "ask" in fact:
+                qid = fact["ask"]
+                # Find the question text for this ID
+                for q in self.questions:
+                    if q["id"] == qid:
+                        validation_errors.append(qid)
+
+        return validation_errors
+
+    # Modify your submit_all_answers method
     def submit_all_answers(self):
         self.answers.clear()
 
+        # Reset all background colors
+        for entry in self.answer_entries.values():
+            entry.config(bg="#3C3C3C")
+
+        # Collect answers with basic type validation
         for q in self.questions:
             qid = q["id"]
             qtype = q["type"]
@@ -248,20 +288,25 @@ class App(tk.Tk):
 
             if not self.validate_answer(value, qtype):
                 messagebox.showerror(
-                    "Invalid Input", f"Please provide a valid input for: {q['text']}"
+                    "Invalid Input", f"Please provide a valid {qtype} for: {q['text']}"
                 )
                 return
 
             self.answers[qid] = value
 
-        self.run_engine_and_show_recommendations()
-        self.submit_button.config(state="disabled")  # Disable after submission
-        self.update_graph()
+        # Run engine validation rules
+        validation_errors = self.validate_answers_with_engine()
 
-    def validate_answer(self, answer, answer_type):
-        if answer_type == "int":
-            return answer.isdigit()
-        return True
+        if validation_errors:
+            messagebox.showerror(
+                "Validation Error",
+                f"Data inconsistencies found:\n\nPlease correct your inputs.",
+            )
+            return
+
+        # If validation passed, proceed with analysis
+        self.run_engine_and_show_recommendations()
+        self.update_graph()
 
     def run_engine_and_show_recommendations(self):
         self.engine.reset()
@@ -335,7 +380,7 @@ class App(tk.Tk):
                     header += "**"
 
                 final_recommendation += header + "\n"
-                final_recommendation +=  f"   - **Certainty Factor (CF)**: {cf:.3f} (adjusted for severity and proportion)\n"
+                final_recommendation += f"   - **Certainty Factor (CF)**: {cf:.3f} (adjusted for severity and proportion)\n"
 
                 final_recommendation += "   - **Actions**:\n"
                 # Find matching recommendation
@@ -377,7 +422,7 @@ class App(tk.Tk):
             self.recommendation_text.insert(tk.END, f"{final_recommendation}\n\n")
             self.recommendation_text.config(state="disabled")
 
-        self.submit_button.pack_forget()
+        # self.submit_button.pack_forget()
 
     def update_graph(self):
         self.fig.clear()
@@ -427,15 +472,18 @@ class App(tk.Tk):
                 autopct="%1.1f%%",
                 startangle=90,
                 colors=[
-                    "#FF6384", "#36A2EB", "#FFCE56",
-                    "#4BC0C0", "#9966FF", "#FF9F40",
+                    "#FF6384",
+                    "#36A2EB",
+                    "#FFCE56",
+                    "#4BC0C0",
+                    "#9966FF",
+                    "#FF9F40",
                 ],
                 textprops={"color": "w"},
             )
             centre_circle = plt.Circle((0, 0), 0.70, fc="#2E2E2E")
             ax.add_artist(centre_circle)
             ax.axis("equal")  # 💡 Ensures the donut is circular and fills space
-
 
     def plot_bar(self, ax):
         defect_counts = {
